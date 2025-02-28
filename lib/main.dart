@@ -34,7 +34,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
       });
     }
   }
-  
+
+  void _toggleTaskCompletion(int index) {
+    setState(() {
+      _tasks[index].isCompleted = !_tasks[index].isCompleted;
+    });
+  }
+
+  void _deleteTask(int index) {
+    setState(() {
+      _tasks.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +81,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 itemBuilder: (context, index) {
                   final task = _tasks[index];
                   return ListTile(
+                    leading: Checkbox(
+                      value: task.isCompleted,
+                      onChanged: (_) => _toggleTaskCompletion(index),
+                    ),
                     title: Text(
                       task.name,
                       style: TextStyle(
@@ -76,6 +92,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
                       ),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () => _deleteTask(index),
                     ),
                   );
                 },
