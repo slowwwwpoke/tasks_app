@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 
 void main() {
@@ -25,11 +26,12 @@ class TaskListScreen extends StatefulWidget {
 class _TaskListScreenState extends State<TaskListScreen> {
   final TextEditingController _taskController = TextEditingController();
   final List<Task> _tasks = [];
+  String _selectedPriority = 'Low';
 
   void _addTask() {
     if (_taskController.text.isNotEmpty) {
       setState(() {
-        _tasks.add(Task(name: _taskController.text));
+        _tasks.add(Task(name: _taskController.text, priority: _selectedPriority));
         _taskController.clear();
       });
     }
@@ -45,6 +47,28 @@ class _TaskListScreenState extends State<TaskListScreen> {
     setState(() {
       _tasks.removeAt(index);
     });
+  }
+
+  List<Task> _getSortedTasks() {
+    List<Task> sortedTasks = List.from(_tasks);
+    sortedTasks.sort((a, b) {
+      int priorityA = _priorityValue(a.priority);
+      int priorityB = _priorityValue(b.priority);
+      return priorityA.compareTo(priorityB);
+    });
+    return sortedTasks;
+  }
+
+  int _priorityValue(String priority) {
+    switch (priority) {
+      case 'High':
+        return 0;
+      case 'Medium':
+        return 1;
+      case 'Low':
+      default:
+        return 2;
+    }
   }
 
   @override
@@ -68,6 +92,20 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ),
                 ),
                 SizedBox(width: 10),
+                DropdownButton<String>(
+                  value: _selectedPriority,
+                  items: ['Low', 'Medium', 'High']
+                      .map((priority) => DropdownMenuItem<String>(
+                            value: priority,
+                            child: Text(priority),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedPriority = value!;
+                    });
+                  },
+                ),
                 ElevatedButton(
                   onPressed: _addTask,
                   child: Text('Add'),
@@ -79,7 +117,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
               child: ListView.builder(
                 itemCount: _tasks.length,
                 itemBuilder: (context, index) {
-                  final task = _tasks[index];
+                  final task = _getSortedTasks()[index];
                   return ListTile(
                     leading: Checkbox(
                       value: task.isCompleted,
@@ -93,6 +131,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             : TextDecoration.none,
                       ),
                     ),
+                    subtitle: Text('Priority: ${task.priority}'),
                     trailing: IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () => _deleteTask(index),
@@ -107,10 +146,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 }
-// lib/models/task.dart
+
 class Task {
   String name;
   bool isCompleted;
+  String priority;
 
-  Task({required this.name, this.isCompleted = false});
+  Task({required this.name, this.isCompleted = false, required this.priority});
 }
+
